@@ -1,0 +1,3 @@
+KnowledgeTree OSS Document Management server.
+
+This patch will install KnowledgeTree Community Edition (KT-CE) v3.7.0.2 and all of it's dependancies from repositories (standard Ubuntu Lucid + Cannonical partner + KT-CE + Zend Server). This means that in the future as new versions are released this appliance will be able to be fully upgraded using apt-get upgrade. 

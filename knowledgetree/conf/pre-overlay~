@@ -1,0 +1,61 @@
+#!/bin/bash -ex
+# KnowledgeTree TKLPatch by JedMeister v0.8
+# This part executed before apply-overlay
+#
+# This is where most of the action happens otherwise the install of KT overwrites some important overlay files
+
+# Source our custom functions
+cwd=$(dirname $0)
+source $cwd/functions
+
+HOSTNAME=knowledgetree
+
+# set hostname
+echo "$HOSTNAME" > /etc/hostname
+sed -i "s|127.0.1.1 \(.*\)|127.0.1.1 $HOSTNAME|" /etc/hosts
+
+#Disable byobu - not required from TKL-Core-Lucid beta2 on
+byobu-launcher-uninstall
+
+# Install gnupg
+install gnupg
+
+# Import KT & Zend apt repo keys
+wget http://repos.knowledgetree.com/deb/knowledgetree/kt.key -O- | apt-key add -
+wget http://repos.zend.com/deb/zend.key -O- | apt-key add -
+
+# Add Canonical 'partner' repo
+echo "## Canonical's 'partner' repository." > /etc/apt/sources.list.d/canonicalpartner.list
+echo "## This software is not part of Ubuntu, but is offered by Canonical and the" >> /etc/apt/sources.list.d/canonicalpartner.list
+echo "## respective vendors as a service to Ubuntu users." >> /etc/apt/sources.list.d/canonicalpartner.list
+echo >> /etc/apt/sources.list.d/canonicalpartner.list
+echo "deb http://archive.canonical.com/ubuntu lucid partner" >> /etc/apt/sources.list.d/canonicalpartner.list
+echo "# deb-src http://archive.canonical.com/ubuntu lucid partner" >> /etc/apt/sources.list.d/canonicalpartner.list
+
+# Add KnowledgeTree repo
+echo "#--Knowledge Tree Community Edition offical repo" > /etc/apt/sources.list.d/knowledgetree.list
+echo >> /etc/apt/sources.list.d/knowledgetree.list
+echo "deb http://repos.knowledgetree.com/deb/knowledgetree knowledgetree-ce main" >> /etc/apt/sources.list.d/knowledgetree.list
+
+# Add Zend Server repo
+echo "#--Zend Server repo (contains both free and non-free pkgs)" > /etc/apt/sources.list.d/zendserver.list
+echo >> /etc/apt/sources.list.d/zendserver.list
+echo "deb http://repos.zend.com/zend-server/deb server non-free" >> /etc/apt/sources.list.d/zendserver.list
+
+# Install KTCE (KnowledgeTree Community Edition - all dependancies handled automatically)
+install knowledgetree-ce
+
+# Install some other stuff
+install ssl-cert postfix webmin-apache webmin-postfix
+
+# Create database
+mysqladmin -u root create dms
+
+# Create KT default database users
+mysql -u root dms < /usr/share/knowledgetree-ce/sql/mysql/install/user.sql
+
+# Create database tables
+mysql -u root dms < /usr/share/knowledgetree-ce/sql/mysql/install/structure.sql
+mysql -u root dms < /usr/share/knowledgetree-ce/sql/mysql/install/data.sql
+
+# Now overlay files
