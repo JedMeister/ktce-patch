@@ -1,0 +1,10 @@
+#!/bin/bash -e
+# KnowledgeTree firstboot config file
+
+# set KnowledgeTree admin password
+
+. /etc/default/inithooks
+
+[ -e $INITHOOKS_CONF ] && . $INITHOOKS_CONF
+
+$INITHOOKS_PATH/bin/knowledgetree.py --pass="$APP_PASS"

@@ -1,0 +1,41 @@
+# knowledgeTree - Document management
+#
+# Allows only localhost by default
+#
+# But allowing knowledgeTree to anyone other than localhost should be considered
+# dangerous unless properly secured by SSL
+
+#NameVirtualHost *:80
+NameVirtualHost *:443
+
+<VirtualHost *:80>
+        ServerAdmin webmaster@localhost
+        DocumentRoot /usr/share/knowledgetree-ce/
+</VirtualHost>
+
+<VirtualHost *:443>
+        SSLEngine on
+        SSLCertificateFile /etc/ssl/certs/cert.pem
+        ServerAdmin webmaster@localhost
+        DocumentRoot /usr/share/knowledgetree-ce/
+</VirtualHost>
+
+ScriptAlias /cgi-bin/ /var/www/cgi-bin/
+
+#Alias /knowledgetree /usr/share/knowledgetree-ce
+<Directory /usr/share/knowledgetree-ce/>
+  # Options Indexes FollowSymLinks MultiViews
+   Order deny,allow
+   AllowOverride All
+   Allow from all
+ </Directory>
+
+
+# This configuration prevents mod_security at phpMyAdmin directories from
+# filtering SQL etc.  This may break your mod_security implementation.
+#
+#<IfModule mod_security.c>
+#    <Directory /usr/share/knowledgetree>
+#        SecRuleInheritance Off
+#    </Directory>
+#</IfModule>

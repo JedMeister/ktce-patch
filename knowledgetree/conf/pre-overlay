@@ -1,8 +1,11 @@
 #!/bin/bash -ex
-# KnowledgeTree TKLPatch by JedMeister v0.10
-# This part executed before apply-overlay
-#
-# This is where most of the action happens otherwise the install of KT overwrites some important overlay files
+# KnowledgeTree TKLPatch by JedMeister v0.11
+# The patch has had a fairly major rejig since v0.10
+
+#Also the overlay includes some security fixes - as described here:
+
+# http://wiki.knowledgetree.org/Security_advisory:_URL_Manipulation
+# http://wiki.knowledgetree.org/Security_advisory:_KnowledgeTree_login.php_Blind_SQL_Injection
 
 # Source our custom functions
 cwd=$(dirname $0)
@@ -14,12 +17,9 @@ HOSTNAME=knowledgetree
 echo "$HOSTNAME" > /etc/hostname
 sed -i "s|127.0.1.1 \(.*\)|127.0.1.1 $HOSTNAME|" /etc/hosts
 
-# Install gnupg 
-#install gnupg #no longer req'd as is included in Core
-
 # Import KT & Zend apt repo keys
 wget http://repos.knowledgetree.com/deb/knowledgetree/kt.key -O- | apt-key add -
-wget http://repos.zend.com/deb/zend.key -O- | apt-key add -
+wget http://repos.zend.com/zend.key -O- | apt-key add -
 
 # Add Canonical 'partner' repo
 echo "## Canonical's 'partner' repository." > /etc/apt/sources.list.d/canonicalpartner.list
@@ -39,14 +39,33 @@ echo "#--Zend Server repo (contains both free and non-free pkgs)" > /etc/apt/sou
 echo >> /etc/apt/sources.list.d/zendserver.list
 echo "deb http://repos.zend.com/zend-server/deb server non-free" >> /etc/apt/sources.list.d/zendserver.list
 
-# Install KTCE (KnowledgeTree Community Edition - all dependancies handled automatically)
-install knowledgetree-ce
+# Install KTCE (KT Community Edition) and some other stuff
+install knowledgetree-ce 
 
 # Install some other stuff
-install ssl-cert postfix webmin-apache webmin-postfix
+install ssl-cert postfix webmin-postfix 
 
-# Create database
-mysqladmin -u root create dms
+# Disable Zend UI (by default won't allow connections other than local anyway)
+a2dissite zendserver_gui.conf
+a2dissite default
+
+# add rewrite to force https (.htaccess) - Disabled as it doesn't work :(
+#echo >> /usr/share/knowledgetree-ce/.htaccess
+#echo >> /usr/share/knowledgetree-ce/.htaccess
+#echo "#Force https" >> /usr/share/knowledgetree-ce/.htaccess
+#echo "RewriteCond %{HTTPS} off" >> /usr/share/knowledgetree-ce/.htaccess
+#echo "RewriteRule (.*) https://%{HTTP_HOST}%{REQUEST_URI}" >> /usr/share/knowledgetree-ce/.htaccess
+
+# Remove config.ini from KT config folder and link to conf in /etc (to avoid confusion)
+rm -f /usr/share/knowledgetree-ce/config/config.ini
+ln -s /etc/knowledgetree-ce/config.ini /usr/share/knowledgetree-ce/config/config.ini
+
+# Create link to KT webroot in default webroot (/var/www)
+ln -s /usr/share/knowledgetree-ce /var/www/knowledgetree
+
+# Create database - will need to go in post.conf - this is the backup plan...
+#mysqladmin -u root create dms
+#mysql -u root dms < /tmp/ktce.sql
 
 # Create KT default database users
 mysql -u root dms < /usr/share/knowledgetree-ce/sql/mysql/install/user.sql
