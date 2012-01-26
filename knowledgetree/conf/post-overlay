@@ -5,16 +5,6 @@
 chown www-data -R /usr/share/knowledgetree-ce
 chgrp www-data -R /usr/share/knowledgetree-ce
 
-
-# Enable ssl apche module
-#a2enmod ssl
-
-# Enable knowledgetree on https 
-cd /etc/apache2/sites-enabled/
-ln -s /etc/apache2/sites-available/default-ssl default-ssl
-
-#apache2ctl restart
-
 #Stop services
 service mysql stop
 service apache2 stop
@@ -23,5 +13,4 @@ service postfix stop
 #Clean apt cache
 apt-get clean
 
-# tell the world what we've done!
-echo 'TKL KnowledgeTree appliance patch applied!' >> /etc/issue
+#End

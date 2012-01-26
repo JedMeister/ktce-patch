@@ -2,7 +2,7 @@
 # KnowledgeTree TKLPatch by JedMeister v0.11
 # The patch has had a fairly major rejig since v0.10
 
-#Also the overlay includes some security fixes - as described here:
+#The overlay also includes some security fixes - as described here:
 
 # http://wiki.knowledgetree.org/Security_advisory:_URL_Manipulation
 # http://wiki.knowledgetree.org/Security_advisory:_KnowledgeTree_login.php_Blind_SQL_Injection
@@ -49,13 +49,6 @@ install ssl-cert postfix webmin-postfix
 a2dissite zendserver_gui.conf
 a2dissite default
 
-# add rewrite to force https (.htaccess) - Disabled as it doesn't work :(
-#echo >> /usr/share/knowledgetree-ce/.htaccess
-#echo >> /usr/share/knowledgetree-ce/.htaccess
-#echo "#Force https" >> /usr/share/knowledgetree-ce/.htaccess
-#echo "RewriteCond %{HTTPS} off" >> /usr/share/knowledgetree-ce/.htaccess
-#echo "RewriteRule (.*) https://%{HTTP_HOST}%{REQUEST_URI}" >> /usr/share/knowledgetree-ce/.htaccess
-
 # Remove config.ini from KT config folder and link to conf in /etc (to avoid confusion)
 rm -f /usr/share/knowledgetree-ce/config/config.ini
 ln -s /etc/knowledgetree-ce/config.ini /usr/share/knowledgetree-ce/config/config.ini
@@ -64,7 +57,7 @@ ln -s /etc/knowledgetree-ce/config.ini /usr/share/knowledgetree-ce/config/config
 ln -s /usr/share/knowledgetree-ce /var/www/knowledgetree
 
 # Create database - will need to go in post.conf - this is the backup plan...
-#mysqladmin -u root create dms
+mysqladmin -u root create dms
 #mysql -u root dms < /tmp/ktce.sql
 
 # Create KT default database users
