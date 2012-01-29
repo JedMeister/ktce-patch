@@ -1,0 +1,76 @@
+#!/bin/bash -ex
+# KnowledgeTree TKLPatch by JedMeister v0.12
+# The patch has had a fairly major rejig since v0.10
+
+#The overlay also includes some security fixes - as described here:
+
+# http://wiki.knowledgetree.org/Security_advisory:_URL_Manipulation
+# http://wiki.knowledgetree.org/Security_advisory:_KnowledgeTree_login.php_Blind_SQL_Injection
+
+install()
+{
+    apt-get update
+    DEBIAN_FRONTEND=noninteractive apt-get -y \
+        -o DPkg::Options::=--force-confdef \
+        -o DPkg::Options::=--force-confold \
+        install $@
+}
+
+HOSTNAME=knowledgetree
+
+# set hostname
+echo "$HOSTNAME" > /etc/hostname
+sed -i "s|127.0.1.1 \(.*\)|127.0.1.1 $HOSTNAME|" /etc/hosts
+
+# Import KT & Zend apt repo keys
+wget http://repos.knowledgetree.com/deb/knowledgetree/kt.key -O- | apt-key add -
+wget http://repos.zend.com/zend.key -O- | apt-key add -
+
+# Install KTCE (KT Community Edition) and some other stuff
+install knowledgetree-ce ssl-cert postfix webmin-postfix 
+
+# Disable Zend UI (by default won't allow connections other than local anyway)
+a2dissite zendserver_gui.conf
+a2dissite default
+
+# Remove config.ini from KT config folder and link to conf in /etc (to avoid confusion)
+rm -f /usr/share/knowledgetree-ce/config/config.ini
+ln -s /etc/knowledgetree-ce/config.ini /usr/share/knowledgetree-ce/config/config.ini
+
+# Create link to KT webroot in default webroot (/var/www) so users can easily find KT webroot if need be
+ln -s /usr/share/knowledgetree-ce /var/www/knowledgetree
+
+# Start MySQL prior to importing DB - don't recall doing this in previous patches, but patch errors without it!
+service mysql start
+
+# Create database
+mysqladmin -u root create dms
+
+# Create KT default database users
+mysql -u root dms < /usr/share/knowledgetree-ce/sql/mysql/install/user.sql
+
+# Create database tables
+mysql -u root dms < /usr/share/knowledgetree-ce/sql/mysql/install/structure.sql
+mysql -u root dms < /usr/share/knowledgetree-ce/sql/mysql/install/data.sql
+
+# Disable Zend GUI/WebUI (which uses LigHTTPd). This is perhaps a hacky way of doing it... but it works! By default it is only accessable from localhost anyway. If end users wish to use it then they can rename it back and configure it appropriately.
+mv /usr/local/zend/gui/lighttpd/etc/lighttpd.conf /usr/local/zend/gui/lighttpd/etc/lighttpd.conf.disabled
+
+# Stop services
+service mysql stop
+service apache2 stop
+service postfix stop
+service zend-server stop
+
+# Change ownership of KT folder (and contents)
+chown www-data -R /usr/share/knowledgetree-ce
+chgrp www-data -R /usr/share/knowledgetree-ce
+
+# Copy KT overlay files - I originally had this as a 2 part patch (ie with pre & post overlay conf files) but have now simplified and condensed using tmp folder
+cp -r /tmp/kt-overlay/usr/share/knowledgetree-ce /usr/share/
+rm -rf /tmp/kt-overlay
+
+# Clean apt cache
+apt-get clean
+
+# End

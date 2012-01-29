@@ -1,0 +1,3 @@
+#--Zend Server repo (contains both free and non-free pkgs)
+
+deb http://repos.zend.com/zend-server/deb server non-free

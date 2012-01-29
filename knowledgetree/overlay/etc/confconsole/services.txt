@@ -1,10 +1,11 @@
 KnowledgeTree: https://$ipaddr
-KT Admin: https://$ipaddr/knowledgetree/admin
-Web shell: https://$ipaddr:12320
-Webmin: https://$ipaddr:12321
-PHPMyAdmin: https://$ipaddr:12322
-SSH/SFTP: root@$ipaddr (port 22)
+KT Admin:      https://$ipaddr/admin
+KT WebDAV:     https://$ipaddr/ktwebdav/ktwebdav.php
+Web shell:     https://$ipaddr:12320
+Webmin:        https://$ipaddr:12321
+PHPMyAdmin:    https://$ipaddr:12322
+SSH/SFTP:      root@$ipaddr (port 22)
 
-----------------------------------------------------
-Note: http is disabled in this aed in this appliance
-----------------------------------------------------
+----------------------------------------
+Note: http is disabled in this appliance
+----------------------------------------
